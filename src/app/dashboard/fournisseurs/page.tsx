@@ -8,12 +8,18 @@ export default function FournisseursPage() {
   const supabase = createClient();
   const [fournisseurs, setFournisseurs] = useState<Fournisseur[]>([]);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState('');
   const [form, setForm] = useState({ nom: '', site_web: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+      if (profile) setRole(profile.role);
+    }
     const { data } = await supabase.from('fournisseurs').select('*').order('nom');
     setFournisseurs(data || []);
     setLoading(false);
@@ -57,7 +63,6 @@ export default function FournisseursPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Liste */}
         <div className="lg:col-span-2 card overflow-hidden">
           <div className="px-5 py-4" style={{ borderBottom: '1px solid #f2f2f7' }}>
             <h2 className="font-semibold text-sm" style={{ color: '#1d1d1f' }}>
@@ -74,14 +79,10 @@ export default function FournisseursPage() {
               </tr>
             </thead>
             <tbody>
-              {loading && (
-                <tr><td colSpan={4} className="table-cell text-center py-8" style={{ color: '#aeaeb2' }}>Chargement…</td></tr>
-              )}
-              {!loading && fournisseurs.length === 0 && (
-                <tr><td colSpan={4} className="table-cell text-center py-8" style={{ color: '#aeaeb2' }}>Aucun fournisseur.</td></tr>
-              )}
+              {loading && <tr><td colSpan={4} className="table-cell text-center py-8" style={{ color: '#aeaeb2' }}>Chargement…</td></tr>}
+              {!loading && fournisseurs.length === 0 && <tr><td colSpan={4} className="table-cell text-center py-8" style={{ color: '#aeaeb2' }}>Aucun fournisseur.</td></tr>}
               {fournisseurs.map(f => (
-                <tr key={f.id} className={`transition-colors ${!f.actif ? 'opacity-40' : ''}`}
+                <tr key={f.id} className={!f.actif ? 'opacity-40' : ''}
                     style={{ borderTop: '1px solid #f2f2f7' }}>
                   <td className="table-cell font-medium text-sm" style={{ color: '#1d1d1f' }}>{f.nom}</td>
                   <td className="table-cell">
@@ -91,24 +92,23 @@ export default function FournisseursPage() {
                       : <span style={{ color: '#aeaeb2' }}>—</span>}
                   </td>
                   <td className="table-cell">
-                    <span className={`status-badge ${f.actif
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                      : 'bg-gray-50 text-gray-500 border-gray-100'}`}>
+                    <span className={`status-badge ${f.actif ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-gray-50 text-gray-500 border-gray-100'}`}>
                       {f.actif ? 'Actif' : 'Inactif'}
                     </span>
                   </td>
                   <td className="table-cell">
                     <div className="flex items-center gap-3">
                       <button onClick={() => toggleActif(f.id, f.actif)}
-                        className="text-xs font-medium hover:underline"
-                        style={{ color: '#0071e3' }}>
+                        className="text-xs font-medium hover:underline" style={{ color: '#0071e3' }}>
                         {f.actif ? 'Désactiver' : 'Activer'}
                       </button>
-                      <button onClick={() => handleDelete(f.id, f.nom)}
-                        className="text-xs font-medium hover:underline"
-                        style={{ color: '#ff3b30' }}>
-                        Supprimer
-                      </button>
+                      {/* Supprimer : super_admin uniquement */}
+                      {role === 'super_admin' && (
+                        <button onClick={() => handleDelete(f.id, f.nom)}
+                          className="text-xs font-medium hover:underline" style={{ color: '#ff3b30' }}>
+                          Supprimer
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -117,7 +117,6 @@ export default function FournisseursPage() {
           </table>
         </div>
 
-        {/* Ajout */}
         <div className="card p-5">
           <h2 className="font-semibold text-sm mb-4" style={{ color: '#1d1d1f' }}>Ajouter un fournisseur</h2>
           <form onSubmit={handleAdd} className="space-y-4">
