@@ -1,7 +1,7 @@
+// FICHIER : src/components/Sidebar.tsx
 'use client';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import type { Profile } from '@/types';
 
@@ -39,6 +39,11 @@ const navItems = [
     icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}><path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
   },
   {
+    href: '/dashboard/utilisateurs', label: 'Utilisateurs',
+    roles: ['super_admin'],
+    icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+  },
+  {
     href: '/dashboard/export', label: 'Export Excel',
     roles: ['super_admin','responsable_pedagogique'],
     icon: <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
@@ -47,10 +52,10 @@ const navItems = [
 
 export default function Sidebar({ profile }: { profile: Profile }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const supabase = createClient();
 
   const handleLogout = async () => {
+    const { createClient } = await import('@/lib/supabase/client');
+    const supabase = createClient();
     await supabase.auth.signOut();
     window.location.href = '/login';
   };
@@ -58,21 +63,16 @@ export default function Sidebar({ profile }: { profile: Profile }) {
   return (
     <aside className="w-56 flex-shrink-0 flex flex-col h-screen"
            style={{ background: '#fff', borderRight: '1px solid #e5e5ea' }}>
-      {/* Logo */}
       <div className="px-5 py-5" style={{ borderBottom: '1px solid #f2f2f7' }}>
         <div className="flex items-center gap-2.5">
-          <Image
-            src="https://peoplespheres.com/wp-content/uploads/2024/10/CESI-logo.png"
-            alt="CESI" width={52} height={20}
-            className="object-contain" unoptimized
-          />
+          <Image src="https://peoplespheres.com/wp-content/uploads/2024/10/CESI-logo.png"
+            alt="CESI" width={52} height={20} className="object-contain" unoptimized />
           <span className="text-sm font-semibold" style={{ color: '#1d1d1f', letterSpacing: '-0.2px' }}>
             Commandes
           </span>
         </div>
       </div>
 
-      {/* Nav */}
       <nav className="flex-1 px-2.5 py-3 space-y-0.5 overflow-y-auto">
         {navItems.filter(i => i.roles.includes(profile.role)).map(item => {
           const isActive = item.href === '/dashboard'
@@ -80,15 +80,12 @@ export default function Sidebar({ profile }: { profile: Profile }) {
             : pathname.startsWith(item.href);
           return (
             <Link key={item.href} href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100 ${
-                isActive
-                  ? 'text-white'
-                  : 'hover:bg-gray-50'
-              }`}
+              className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-100"
               style={isActive
                 ? { backgroundColor: '#0071e3', color: '#fff' }
-                : { color: '#3a3a3c' }
-              }>
+                : { color: '#3a3a3c' }}
+              onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = '#f5f5f7'; }}
+              onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = ''; }}>
               <span style={isActive ? { color: '#fff' } : { color: '#aeaeb2' }}>
                 {item.icon}
               </span>
@@ -98,21 +95,16 @@ export default function Sidebar({ profile }: { profile: Profile }) {
         })}
       </nav>
 
-      {/* User */}
       <div className="px-2.5 py-3" style={{ borderTop: '1px solid #f2f2f7' }}>
         <div className="px-3 py-2 mb-1">
-          <p className="text-sm font-medium truncate" style={{ color: '#1d1d1f' }}>
-            {profile.nom || 'Utilisateur'}
-          </p>
-          <p className="text-xs" style={{ color: '#aeaeb2' }}>
-            {ROLE_LABELS[profile.role] || profile.role}
-          </p>
+          <p className="text-sm font-medium truncate" style={{ color: '#1d1d1f' }}>{profile.nom || 'Utilisateur'}</p>
+          <p className="text-xs" style={{ color: '#aeaeb2' }}>{ROLE_LABELS[profile.role] || profile.role}</p>
         </div>
         <button onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-colors hover:bg-red-50"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-colors"
           style={{ color: '#aeaeb2' }}
-          onMouseEnter={e => (e.currentTarget.style.color = '#ff3b30')}
-          onMouseLeave={e => (e.currentTarget.style.color = '#aeaeb2')}>
+          onMouseEnter={e => { e.currentTarget.style.color = '#ff3b30'; e.currentTarget.style.background = '#fff1f0'; }}
+          onMouseLeave={e => { e.currentTarget.style.color = '#aeaeb2'; e.currentTarget.style.background = ''; }}>
           <svg className="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
