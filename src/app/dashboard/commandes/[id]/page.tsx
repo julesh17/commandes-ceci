@@ -53,7 +53,7 @@ export default async function CommandeDetailPage({
   const cmd = commande as Commande;
 
   const sujet = 'Commande CESI arrivée';
-  const corps = `Bonjour,\n\nVotre commande "${cmd.description}" est arrivée. Vous pouvez venir la récupérer à l'école.\n\nCordialement`;
+  const corps = `Bonjour,\n\nVotre commande "${cmd.description}" est arrivée à l'école CESI. Vous pouvez venir la récupérer à l'école.\n\nCordialement`;
   const mailtoLink = `mailto:${cmd.email_referent}?subject=${encodeURIComponent(sujet)}&body=${encodeURIComponent(corps)}`;
 
   return (
@@ -110,6 +110,17 @@ export default async function CommandeDetailPage({
                 <dt style={{ color: '#6e6e73' }}>Référent étudiant</dt>
                 <dd style={{ color: '#1d1d1f' }}>{cmd.email_referent}</dd>
               </div>
+              {(cmd.statut === 'refusee' || cmd.statut === 'non_commandable') && (cmd as unknown as { motif?: string }).motif && (
+                <div className="flex flex-col gap-1 text-sm pt-2" style={{ borderTop: '1px solid #f2f2f7' }}>
+                  <dt className="font-medium" style={{ color: '#ff3b30' }}>
+                    {cmd.statut === 'refusee' ? 'Motif du refus' : 'Motif'}
+                  </dt>
+                  <dd className="rounded-xl px-3 py-2 text-sm"
+                      style={{ background: 'rgba(255,59,48,0.06)', color: '#c0392b', border: '1px solid rgba(255,59,48,0.12)' }}>
+                    {(cmd as unknown as { motif?: string }).motif}
+                  </dd>
+                </div>
+              )}
             </dl>
           </div>
 
