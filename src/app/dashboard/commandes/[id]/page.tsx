@@ -5,6 +5,15 @@ import StatusBadge from '@/components/StatusBadge';
 import CommandeActions from './CommandeActions';
 import type { Commande } from '@/types';
 
+function formatDate(d: string | null) {
+  if (!d) return null;
+  return new Date(d).toLocaleDateString('fr-FR', {
+    timeZone: 'Europe/Paris',
+    day: 'numeric', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+
 export default async function CommandeDetailPage({
   params,
 }: {
@@ -28,7 +37,7 @@ export default async function CommandeDetailPage({
 
   const isAdmin = ['super_admin', 'responsable_pedagogique', 'assistante'].includes(profile.role);
   const isEtudiant = profile.role === 'etudiant_groupe';
-  const canSeeRealPrice = ['super_admin', 'responsable_pedagogique', 'assistante'].includes(profile.role);
+  const canSeeRealPrice = isAdmin;
 
   if (isEtudiant) {
     const { data: groupe } = await supabase.from('groupes').select('id').eq('user_id', user.id).single();
@@ -65,7 +74,6 @@ export default async function CommandeDetailPage({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Colonne principale */}
         <div className="lg:col-span-2 space-y-5">
           {/* Infos produit */}
           <div className="card p-5">
@@ -124,7 +132,7 @@ export default async function CommandeDetailPage({
             </dl>
           </div>
 
-          {/* Dates */}
+          {/* Chronologie */}
           <div className="card p-5">
             <h2 className="font-semibold text-sm mb-4" style={{ color: '#1d1d1f' }}>Chronologie</h2>
             <div className="space-y-2">
@@ -137,12 +145,7 @@ export default async function CommandeDetailPage({
               ].map(({ label, date }) => date && (
                 <div key={label} className="flex justify-between text-sm">
                   <span style={{ color: '#6e6e73' }}>{label}</span>
-                  <span style={{ color: '#1d1d1f' }}>
-                    {new Date(date).toLocaleDateString('fr-FR', {
-                      day: 'numeric', month: 'long', year: 'numeric',
-                      hour: '2-digit', minute: '2-digit'
-                    })}
-                  </span>
+                  <span style={{ color: '#1d1d1f' }}>{formatDate(date)}</span>
                 </div>
               ))}
             </div>
@@ -158,12 +161,9 @@ export default async function CommandeDetailPage({
                     <div className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0" style={{ background: '#0071e3' }} />
                     <div>
                       <p className="font-medium" style={{ color: '#1d1d1f' }}>{h.action}</p>
-                      {h.details && <p className="text-xs" style={{ color: '#6e6e73' }}>{h.details}</p>}
+                      {h.details && <p className="text-xs mt-0.5" style={{ color: '#6e6e73' }}>{h.details}</p>}
                       <p className="text-xs mt-0.5" style={{ color: '#aeaeb2' }}>
-                        {h.profiles?.nom || 'Système'} — {new Date(h.created_at).toLocaleDateString('fr-FR', {
-                          day: 'numeric', month: 'short', year: 'numeric',
-                          hour: '2-digit', minute: '2-digit'
-                        })}
+                        {h.profiles?.nom || 'Système'} — {formatDate(h.created_at)}
                       </p>
                     </div>
                   </li>
@@ -176,11 +176,7 @@ export default async function CommandeDetailPage({
         {/* Actions */}
         <div className="space-y-4">
           {isAdmin && (
-            <CommandeActions
-              commande={cmd}
-              profile={profile}
-              mailtoLink={mailtoLink}
-            />
+            <CommandeActions commande={cmd} profile={profile} mailtoLink={mailtoLink} />
           )}
           {isEtudiant && cmd.statut === 'colis_arrive' && (
             <div className="card p-5">
