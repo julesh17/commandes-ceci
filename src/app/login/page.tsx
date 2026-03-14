@@ -4,12 +4,7 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-
-// Convertit un pseudo en email interne — jamais visible par l'utilisateur
-export function pseudoToEmail(pseudo: string): string {
-  const clean = pseudo.trim().toLowerCase().replace(/\s+/g, '-');
-  return `${clean}@cesi-interne.local`;
-}
+import { pseudoToEmail } from '@/lib/utils';
 
 export default function LoginPage() {
   const [pseudo, setPseudo] = useState('');
