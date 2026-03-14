@@ -37,6 +37,7 @@ export default function CommandeActions({ commande, profile, mailtoLink }: Props
       receptionnee: 'date_reception',
     };
 
+    // On stocke le motif directement sur la commande si présent
     const updates: Record<string, unknown> = {
       statut: newStatut,
       date_mise_a_jour: now,
