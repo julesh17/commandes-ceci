@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect, notFound } from 'next/navigation';
 import NouveauGroupeForm from './NouveauGroupeForm';
+import ModifierAssistanteForm from './ModifierAssistanteForm';
 
 export default async function PromotionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -12,7 +13,11 @@ export default async function PromotionDetailPage({ params }: { params: Promise<
   const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
   if (!profile || !['super_admin', 'responsable_pedagogique'].includes(profile.role)) redirect('/dashboard');
 
-  const { data: promotion } = await supabase.from('promotions').select('*').eq('id', id).single();
+  const { data: promotion } = await supabase
+    .from('promotions')
+    .select('*, assistante:assistante_id(id, nom)')
+    .eq('id', id)
+    .single();
   if (!promotion) notFound();
 
   const { data: groupes } = await supabase
@@ -28,10 +33,14 @@ export default async function PromotionDetailPage({ params }: { params: Promise<
 
   const isResponsable = profile.role === 'responsable_pedagogique';
 
-  // Super admin uniquement : charger la liste des responsables
   const { data: responsables } = isResponsable
     ? { data: [] }
     : await supabase.from('profiles').select('id, nom').eq('role', 'responsable_pedagogique').order('nom');
+
+  const { data: assistantes } = await supabase
+    .from('profiles').select('id, nom').eq('role', 'assistante').order('nom');
+
+  const assistanteActuelle = promotion.assistante as { id: string; nom: string } | null;
 
   return (
     <div>
@@ -45,8 +54,20 @@ export default async function PromotionDetailPage({ params }: { params: Promise<
           </h1>
           <p className="text-sm mt-0.5" style={{ color: '#6e6e73' }}>
             {promotion.annee_academique} — Budget par groupe : {Number(promotion.budget_par_groupe).toFixed(2)} €
+            {assistanteActuelle && (
+              <> — Assistante : <strong style={{ color: '#1d1d1f' }}>{assistanteActuelle.nom}</strong></>
+            )}
           </p>
         </div>
+      </div>
+
+      {/* Modifier l'assistante */}
+      <div className="mb-6">
+        <ModifierAssistanteForm
+          promotionId={parseInt(id)}
+          assistantes={assistantes || []}
+          currentAssistanteId={assistanteActuelle?.id || ''}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
