@@ -4,7 +4,18 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function NouveauGroupeForm({ promotionId }: { promotionId: number }) {
+interface Responsable {
+  id: string;
+  nom: string;
+}
+
+interface Props {
+  promotionId: number;
+  responsables: Responsable[];
+  defaultResponsableId?: string;
+}
+
+export default function NouveauGroupeForm({ promotionId, responsables, defaultResponsableId }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -12,6 +23,7 @@ export default function NouveauGroupeForm({ promotionId }: { promotionId: number
   const [nom, setNom] = useState('');
   const [pseudo, setPseudo] = useState('');
   const [password, setPassword] = useState('');
+  const [responsableId, setResponsableId] = useState(defaultResponsableId || '');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +46,7 @@ export default function NouveauGroupeForm({ promotionId }: { promotionId: number
         pseudo: pseudo.trim(),
         password,
         nom_compte: nom.trim(),
+        responsable_id: responsableId || null,
       }),
     });
 
@@ -52,18 +65,28 @@ export default function NouveauGroupeForm({ promotionId }: { promotionId: number
     <div className="card p-5">
       <h2 className="font-semibold text-sm mb-4" style={{ color: '#1d1d1f' }}>Créer un groupe</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
-
         <div>
           <label className="form-label">Nom du groupe *</label>
           <input type="text" value={nom} onChange={e => setNom(e.target.value)}
             className="form-input" placeholder="Ex : Groupe A, Équipe 1…" />
         </div>
 
+        {responsables.length > 0 && (
+          <div>
+            <label className="form-label">Responsable pédagogique</label>
+            <select value={responsableId} onChange={e => setResponsableId(e.target.value)} className="form-input">
+              <option value="">— Aucun —</option>
+              {responsables.map(r => (
+                <option key={r.id} value={r.id}>{r.nom}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div style={{ borderTop: '1px solid #f2f2f7', paddingTop: '1rem' }}>
           <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: '#aeaeb2' }}>
             Compte de connexion
           </p>
-
           <div className="space-y-3">
             <div>
               <label className="form-label">Pseudo *</label>
@@ -73,14 +96,11 @@ export default function NouveauGroupeForm({ promotionId }: { promotionId: number
                 Les étudiants tapent ce pseudo pour se connecter.
               </p>
             </div>
-
             <div>
               <label className="form-label">Mot de passe *</label>
               <input type="text" value={password} onChange={e => setPassword(e.target.value)}
                 className="form-input" placeholder="Minimum 6 caractères" />
-              <p className="text-xs mt-1" style={{ color: '#aeaeb2' }}>
-                À transmettre au groupe.
-              </p>
+              <p className="text-xs mt-1" style={{ color: '#aeaeb2' }}>À transmettre au groupe.</p>
             </div>
           </div>
         </div>
