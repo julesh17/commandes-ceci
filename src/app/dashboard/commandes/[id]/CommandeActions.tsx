@@ -1,0 +1,203 @@
+// src/app/dashboard/commandes/[id]/CommandeActions.tsx
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
+import type { Commande, Profile } from '@/types';
+
+interface Props {
+  commande: Commande;
+  profile: Profile;
+  mailtoLink: string;
+}
+
+export default function CommandeActions({ commande, profile, mailtoLink }: Props) {
+  const router = useRouter();
+  const supabase = createClient();
+  const [loading, setLoading] = useState(false);
+  const [prixReel, setPrixReel] = useState('');
+  const [showPrixReel, setShowPrixReel] = useState(false);
+  const [error, setError] = useState('');
+
+  const canValidate = ['super_admin', 'responsable_pedagogique'].includes(profile.role);
+  const canOrder = ['super_admin', 'responsable_pedagogique', 'assistante'].includes(profile.role);
+
+  const updateStatut = async (newStatut: string, extraData: Record<string, unknown> = {}) => {
+    setLoading(true);
+    setError('');
+
+    const now = new Date().toISOString();
+    const dateMap: Record<string, string> = {
+      validee: 'date_validation',
+      commandee: 'date_commande',
+      colis_arrive: 'date_colis_arrive',
+      receptionnee: 'date_reception',
+    };
+
+    const updates: Record<string, unknown> = {
+      statut: newStatut,
+      date_mise_a_jour: now,
+      ...extraData,
+    };
+
+    if (dateMap[newStatut]) {
+      updates[dateMap[newStatut]] = now;
+    }
+
+    const { error: updateError } = await supabase
+      .from('commandes')
+      .update(updates)
+      .eq('id', commande.id);
+
+    if (updateError) {
+      setError('Erreur : ' + updateError.message);
+    } else {
+      // Enregistrer l'historique
+      const actionLabels: Record<string, string> = {
+        validee: 'Commande validée',
+        refusee: 'Commande refusée',
+        commandee: 'Commande passée',
+        non_commandable: 'Marquée non commandable',
+        colis_arrive: 'Colis arrivé',
+        receptionnee: 'Commande réceptionnée',
+      };
+      await supabase.from('historique_commandes').insert({
+        commande_id: commande.id,
+        user_id: profile.id,
+        action: actionLabels[newStatut] || newStatut,
+        details: extraData.prix_reel ? `Prix réel : ${extraData.prix_reel} €` : null,
+      });
+
+      router.refresh();
+    }
+
+    setLoading(false);
+  };
+
+  const handleCommander = async () => {
+    if (!prixReel || isNaN(Number(prixReel)) || Number(prixReel) <= 0) {
+      setError('Veuillez saisir un prix réel valide.');
+      return;
+    }
+    await updateStatut('commandee', { prix_reel: parseFloat(prixReel), ordered_by: profile.id });
+    setShowPrixReel(false);
+  };
+
+  const { statut } = commande;
+
+  return (
+    <div className="card p-5 space-y-3">
+      <h2 className="font-semibold text-slate-900">Actions</h2>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">
+          {error}
+        </div>
+      )}
+
+      {/* En attente → Valider / Refuser */}
+      {statut === 'en_attente' && canValidate && (
+        <div className="space-y-2">
+          <button
+            onClick={() => updateStatut('validee', { validated_by: profile.id })}
+            disabled={loading}
+            className="btn-success w-full justify-center"
+          >
+            ✓ Valider la commande
+          </button>
+          <button
+            onClick={() => updateStatut('refusee')}
+            disabled={loading}
+            className="btn-danger w-full justify-center"
+          >
+            ✗ Refuser la commande
+          </button>
+        </div>
+      )}
+
+      {/* Validée → Commander / Non commandable */}
+      {statut === 'validee' && canOrder && (
+        <div className="space-y-2">
+          {!showPrixReel ? (
+            <button
+              onClick={() => setShowPrixReel(true)}
+              className="btn-primary w-full justify-center"
+            >
+              📦 Commander
+            </button>
+          ) : (
+            <div className="space-y-2">
+              <label className="form-label">Prix réel payé (€)</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0.01"
+                value={prixReel}
+                onChange={e => setPrixReel(e.target.value)}
+                className="form-input"
+                placeholder="0.00"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <button onClick={handleCommander} disabled={loading} className="btn-primary flex-1 justify-center text-sm">
+                  Confirmer
+                </button>
+                <button onClick={() => { setShowPrixReel(false); setPrixReel(''); }} className="btn-secondary flex-1 justify-center text-sm">
+                  Annuler
+                </button>
+              </div>
+            </div>
+          )}
+          <button
+            onClick={() => updateStatut('non_commandable')}
+            disabled={loading}
+            className="btn-secondary w-full justify-center text-sm"
+          >
+            Non commandable
+          </button>
+        </div>
+      )}
+
+      {/* Commandée → Colis arrivé */}
+      {statut === 'commandee' && canOrder && (
+        <button
+          onClick={() => updateStatut('colis_arrive')}
+          disabled={loading}
+          className="btn-primary w-full justify-center"
+        >
+          📬 Marquer colis arrivé
+        </button>
+      )}
+
+      {/* Colis arrivé → Email + Réceptionné */}
+      {statut === 'colis_arrive' && canOrder && (
+        <div className="space-y-2">
+          <a
+            href={mailtoLink}
+            className="btn-secondary w-full justify-center text-sm"
+          >
+            ✉️ Envoyer email au référent
+          </a>
+          <button
+            onClick={() => updateStatut('receptionnee')}
+            disabled={loading}
+            className="btn-success w-full justify-center"
+          >
+            ✓ Marquer comme réceptionnée
+          </button>
+        </div>
+      )}
+
+      {['refusee', 'non_commandable', 'receptionnee'].includes(statut) && (
+        <p className="text-sm text-slate-400 italic text-center">
+          Cette commande est clôturée.
+        </p>
+      )}
+
+      {loading && (
+        <p className="text-xs text-slate-400 text-center">Mise à jour en cours…</p>
+      )}
+    </div>
+  );
+}
