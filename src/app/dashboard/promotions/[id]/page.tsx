@@ -84,8 +84,7 @@ export default async function PromotionDetailPage({ params }: { params: Promise<
                   <tr key={g.id} style={{ borderTop: '1px solid #f2f2f7' }}>
                     <td className="table-cell font-medium text-sm" style={{ color: '#1d1d1f' }}>{g.nom}</td>
                     <td className="table-cell text-sm" style={{ color: '#6e6e73' }}>
-                      {/* @ts-expect-error joined field */}
-                      {g.responsable?.nom || <span style={{ color: '#aeaeb2' }}>—</span>}
+                      {(g.responsable as { nom: string } | null)?.nom || <span style={{ color: '#aeaeb2' }}>—</span>}
                     </td>
                     <td className="table-cell text-sm">{budget ? `${Number(budget.budget_total).toFixed(2)} €` : '—'}</td>
                     <td className="table-cell text-sm" style={{ color: '#f0a500' }}>
