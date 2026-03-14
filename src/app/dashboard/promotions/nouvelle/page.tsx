@@ -12,10 +12,12 @@ export default async function NouvellePromotionPage() {
   if (!profile || !['super_admin', 'responsable_pedagogique'].includes(profile.role)) redirect('/dashboard');
 
   const { data: assistantes } = await supabase
-    .from('profiles')
-    .select('id, nom')
-    .eq('role', 'assistante')
-    .order('nom');
+    .from('profiles').select('id, nom').eq('role', 'assistante').order('nom');
+
+  const { data: responsables } = await supabase
+    .from('profiles').select('id, nom').eq('role', 'responsable_pedagogique').order('nom');
+
+  const isResponsable = profile.role === 'responsable_pedagogique';
 
   return (
     <div>
@@ -28,7 +30,12 @@ export default async function NouvellePromotionPage() {
         </h1>
       </div>
       <div className="max-w-lg">
-        <NouvellePromotionForm assistantes={assistantes || []} />
+        <NouvellePromotionForm
+          assistantes={assistantes || []}
+          responsables={responsables || []}
+          fixedResponsableId={isResponsable ? profile.id : undefined}
+          fixedResponsableNom={isResponsable ? (profile.nom ?? undefined) : undefined}
+        />
       </div>
     </div>
   );
