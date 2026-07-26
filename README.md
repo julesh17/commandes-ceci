@@ -52,7 +52,7 @@ Un **super administrateur** supervise l'ensemble du système : création des com
 
 L'application se trouve à l'adresse [https://commandes-cesi.vercel.app](https://commandes-cesi.vercel.app).
 
-La connexion se fait avec un **pseudo** et un **mot de passe** — il n'y a pas d'adresse email à saisir. Chaque groupe d'étudiants, chaque ERP et chaque AP dispose d'un pseudo qui lui est propre, transmis lors de la création de son compte.
+La connexion se fait avec un **pseudo** et un **mot de passe** (il n'y a pas d'adresse email à saisir). Chaque groupe d'étudiants, chaque ERP et chaque AP dispose d'un pseudo qui lui est propre, transmis lors de la création de son compte.
 
 ### Les rôles
 
@@ -63,7 +63,7 @@ La connexion se fait avec un **pseudo** et un **mot de passe** — il n'y a pas 
 | **Assistante pédagogique (AP)** | Personnel administratif | Passer les commandes validées, suivre la logistique jusqu'à réception, uniquement pour les promotions qui lui sont assignées |
 | **Groupe étudiant** | Équipe projet | Soumettre des demandes de commande, suivre l'avancement, consulter son budget |
 
-Un point important : une **AP ne voit et ne peut agir que sur les commandes déjà validées par un ERP**. Elle ne peut pas commander avant que l'ERP n'ait donné son accord — c'est ce qui garantit que chaque dépense est passée par un enseignant responsable.
+Un point important : une **AP ne voit et ne peut agir que sur les commandes déjà validées par un ERP**. Elle ne peut pas commander avant que l'ERP n'ait donné son accord (c'est ce qui garantit que chaque dépense est passée par un responsable pédagogique.
 
 ### Les promotions et les groupes
 
@@ -85,7 +85,7 @@ Une **promotion** représente une cohorte pour une formation et une année donn�
 - se désigne lui-même comme responsable (ou est désigné par le super admin),
 - assigne une **assistante pédagogique** à la promotion.
 
-Chaque **groupe** correspond à une équipe projet et dispose d'un compte de connexion partagé (un pseudo et un mot de passe transmis à toute l'équipe). Le budget de chaque groupe est totalement indépendant de celui des autres groupes de la même promotion — dépenser tout son budget n'affecte pas les autres groupes.
+Chaque **groupe** correspond à une équipe projet et dispose d'un compte de connexion partagé (un pseudo et un mot de passe transmis à toute l'équipe). Le budget de chaque groupe est totalement indépendant de celui des autres groupes de la même promotion : dépenser tout son budget n'affecte ainsi pas les autres groupes.
 
 ### Le cycle de vie d'une commande
 
@@ -105,11 +105,11 @@ stateDiagram-v2
 
 1. **Un groupe soumet une demande** : lien produit, description, fournisseur, prix estimé TTC, et l'email du référent étudiant (obligatoirement une adresse `@viacesi.fr`). La plateforme vérifie automatiquement que le prix ne dépasse pas le budget restant du groupe.
 2. **L'ERP valide ou refuse.** En cas de refus, il peut préciser un motif, visible par le groupe.
-3. **Une fois validée, l'AP (ou l'ERP) passe la commande.** Elle peut alors saisir le **prix réel** payé, s'il diffère du prix estimé — si elle ne saisit rien, le prix estimé est retenu par défaut. Si la commande s'avère finalement impossible à passer, elle peut être marquée **non commandable** (avec motif optionnel) ; elle ne consomme alors aucun budget.
+3. **Une fois validée, l'AP (ou l'ERP) passe la commande.** Elle peut alors saisir le **prix réel** payé, s'il diffère du prix estimé (si elle ne saisit rien) le prix estimé est retenu par défaut. Si la commande s'avère finalement impossible à passer, elle peut être marquée **non commandable** (avec motif optionnel) ; elle ne consomme alors aucun budget.
 4. **À l'arrivée du colis à CESI**, un bouton permet d'envoyer en un clic un email prérempli au référent étudiant pour l'informer.
-5. **Quand l'étudiant vient récupérer le colis**, la commande est marquée **réceptionnée** — c'est l'étape finale.
+5. **Quand l'étudiant vient récupérer le colis**, la commande est marquée **réceptionnée**, c'est l'étape finale.
 
-Le **prix réel** n'est jamais visible par les groupes d'étudiants ; seuls les ERP, AP et le super admin y ont accès.
+Le **prix réel** est visible par les ERP, AP et le super admin.
 
 ### Les statuts en détail
 
@@ -119,15 +119,15 @@ Le **prix réel** n'est jamais visible par les groupes d'étudiants ; seuls les 
 | 🔵 Validée | Bleu | L'ERP a donné son accord, en attente de commande |
 | 🟣 Commandée | Violet | La commande a été passée par l'AP ou l'ERP |
 | 🟠 Colis arrivé | Orange | Le matériel est arrivé à CESI |
-| 🟢 Réceptionnée | Vert | L'étudiant a récupéré son colis — statut final |
-| 🔴 Refusée | Rouge | L'ERP a refusé la demande — statut final |
-| ⚪ Non commandable | Gris | Impossible à commander après validation — statut final |
+| 🟢 Réceptionnée | Vert | L'étudiant a récupéré son colis - statut final |
+| 🔴 Refusée | Rouge | L'ERP a refusé la demande - statut final |
+| ⚪ Non commandable | Gris | Impossible à commander après validation - statut final |
 
 Depuis la liste des commandes, il est possible de **masquer les commandes terminées** (réceptionnées, refusées, non commandables) pour ne garder à l'écran que ce qui est encore en cours.
 
 ### Actions groupées
 
-Les ERP, AP et le super admin peuvent sélectionner plusieurs commandes à la fois (via des cases à cocher, ou des raccourcis de sélection rapide par statut) et leur appliquer une action commune : valider, commander, marquer colis arrivé ou réceptionner en un seul clic. Il est également possible de filtrer par fournisseur ou par groupe avant d'agir en masse — par exemple, valider toutes les commandes Amazon actuellement en attente.
+Les ERP, AP et le super admin peuvent sélectionner plusieurs commandes à la fois (via des cases à cocher, ou des raccourcis de sélection rapide par statut) et leur appliquer une action commune : valider, commander, marquer colis arrivé ou réceptionner en un seul clic. Il est également possible de filtrer par fournisseur ou par groupe avant d'agir en masse (par exemple, valider toutes les commandes Amazon actuellement en attente).
 
 ### Le budget
 
@@ -146,7 +146,7 @@ La liste des fournisseurs (Amazon, RS Components, GoTronic, etc.) est proposée 
 
 ### L'export
 
-Les ERP et le super admin peuvent exporter l'ensemble des commandes au format CSV (compatible Excel), avec toutes les informations y compris les prix réels — un export auquel les groupes d'étudiants n'ont jamais accès.
+Pour le calcul du budget global et la gestion du stock, les ERP et le super admin peuvent exporter l'ensemble des commandes au format CSV (compatible Excel), avec toutes les informations y compris les prix réels, un export auquel les groupes d'étudiants n'ont pas accès.
 
 ---
 
