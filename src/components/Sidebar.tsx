@@ -70,7 +70,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
            style={{ background: '#fff', borderRight: '1px solid #e5e5ea' }}>
       <div className="px-5 py-5" style={{ borderBottom: '1px solid #f2f2f7' }}>
         <div className="flex items-center gap-2.5">
-          <Image src="https://peoplespheres.com/wp-content/uploads/2024/10/CESI-logo.png"
+          <Image src="https://raw.githubusercontent.com/julesh17/cesi-edt/refs/heads/main/static/cesi.png"
             alt="CESI" width={52} height={20} className="object-contain" unoptimized />
           <span className="text-sm font-semibold" style={{ color: '#1d1d1f', letterSpacing: '-0.2px' }}>
             Commandes
