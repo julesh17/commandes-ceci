@@ -44,7 +44,7 @@ export default function LoginPage() {
           {/* Logo CESI */}
           <div className="text-center mb-8">
             <Image
-              src="https://peoplespheres.com/wp-content/uploads/2024/10/CESI-logo.png"
+              src="https://raw.githubusercontent.com/julesh17/cesi-edt/refs/heads/main/static/cesi.png"
               alt="CESI"
               width={90}
               height={36}
