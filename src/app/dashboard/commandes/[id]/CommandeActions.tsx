@@ -57,7 +57,7 @@ export default function CommandeActions({ commande, profile, mailtoLink }: Props
         commandee: 'Commande passée',
         non_commandable: 'Marquée non commandable',
         colis_arrive: 'Colis arrivé',
-        receptionnee: 'Commande réceptionnée',
+        receptionnee: 'Commande réceptionnée par le groupe',
       };
       await supabase.from('historique_commandes').insert({
         commande_id: commande.id,
@@ -208,7 +208,7 @@ export default function CommandeActions({ commande, profile, mailtoLink }: Props
         </button>
       )}
 
-      {/* Colis arrivé → Email + Réceptionné */}
+      {/* Colis arrivé → Email + Réception par le groupe */}
       {statut === 'colis_arrive' && canOrder && (
         <div className="space-y-2">
           <a href={mailtoLink} className="btn-secondary w-full justify-center text-sm">
@@ -216,7 +216,7 @@ export default function CommandeActions({ commande, profile, mailtoLink }: Props
           </a>
           <button onClick={() => updateStatut('receptionnee')}
             disabled={loading} className="btn-success w-full justify-center">
-            ✓ Marquer comme réceptionnée
+            ✓ Les étudiants ont réceptionné la commande
           </button>
         </div>
       )}

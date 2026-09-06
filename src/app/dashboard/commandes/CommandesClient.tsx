@@ -5,6 +5,7 @@ import { useState, useTransition, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import StatusBadge from '@/components/StatusBadge';
+import GroupedEmails from './GroupedEmails';
 import { createClient } from '@/lib/supabase/client';
 import type { Commande, Profile, CommandeStatus } from '@/types';
 
@@ -38,12 +39,12 @@ const ACTIONS_BULK: Record<string, { label: string; newStatut: CommandeStatus; s
   en_attente: [{ label: '✓ Valider la sélection', newStatut: 'validee', style: 'btn-success' }],
   validee: [{ label: '📦 Commander la sélection', newStatut: 'commandee', style: 'btn-primary' }],
   commandee: [{ label: '📬 Marquer colis arrivés', newStatut: 'colis_arrive', style: 'btn-primary' }],
-  colis_arrive: [{ label: '✓ Réceptionner la sélection', newStatut: 'receptionnee', style: 'btn-success' }],
+  colis_arrive: [{ label: '✓ Les étudiants ont réceptionné les commandes', newStatut: 'receptionnee', style: 'btn-success' }],
 };
 
 export default function CommandesClient({
   commandes, profile, groupes, fournisseurs, params,
-  canSeeRealPrice, isAdmin, isEtudiant,
+  canSeeRealPrice, isAdmin, isSuperAdmin, isResponsable, isAssistante, isEtudiant,
 }: Props) {
   const router = useRouter();
   const supabase = createClient();
@@ -52,9 +53,11 @@ export default function CommandesClient({
   const [bulkLoading, setBulkLoading] = useState(false);
   const [sortBy, setSortBy] = useState<'date' | 'fournisseur' | 'groupe'>('date');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [emailCommandes, setEmailCommandes] = useState<Commande[]>([]);
 
   const canValidate = ['super_admin', 'responsable_pedagogique'].includes(profile.role);
   const canOrder = ['super_admin', 'responsable_pedagogique', 'assistante'].includes(profile.role);
+  const canPrepareEmails = isSuperAdmin || isResponsable || isAssistante;
 
   // Filtres URL
   const updateParam = (key: string, value: string | null) => {
@@ -108,6 +111,11 @@ export default function CommandesClient({
   };
 
   // Actions en masse
+  const selectedCommandes = useMemo(
+    () => sorted.filter(c => selected.has(c.id)),
+    [selected, sorted]
+  );
+
   const statutsSelected = useMemo(() => {
     const stats = new Set<string>();
     sorted.forEach(c => { if (selected.has(c.id)) stats.add(c.statut); });
@@ -189,7 +197,7 @@ export default function CommandesClient({
             <option value="">Tous les statuts</option>
             {(['en_attente','validee','commandee','colis_arrive','receptionnee','refusee','non_commandable'] as CommandeStatus[]).map(s => (
               <option key={s} value={s}>
-                {{'en_attente':'En attente','validee':'Validée','commandee':'Commandée','colis_arrive':'Colis arrivé','receptionnee':'Réceptionnée','refusee':'Refusée','non_commandable':'Non commandable'}[s]}
+                {{'en_attente':'En attente','validee':'Validée','commandee':'Commandée','colis_arrive':'Colis arrivé','receptionnee':'Réceptionnée par le groupe','refusee':'Refusée','non_commandable':'Non commandable'}[s]}
               </option>
             ))}
           </select>
@@ -224,6 +232,17 @@ export default function CommandesClient({
             {params.masquer_terminees === '1' ? '👁 Afficher terminées' : '🙈 Masquer terminées'}
           </button>
 
+          {canPrepareEmails && sorted.length > 0 && (
+            <button
+              onClick={() => setEmailCommandes(selectedCommandes.length > 0 ? selectedCommandes : sorted)}
+              className="btn-secondary text-xs px-3 py-1.5"
+              title={selectedCommandes.length > 0 ? 'Prépare les mails pour la sélection' : 'Prépare les mails pour les commandes actuellement affichées'}
+            >
+              ✉️ Préparer les emails par groupe
+              {selectedCommandes.length > 0 ? ` (${selectedCommandes.length})` : ''}
+            </button>
+          )}
+
           {/* Réinitialiser */}
           {(params.statut || params.groupe || params.fournisseur || params.masquer_terminees) && (
             <a href="/dashboard/commandes" className="text-xs hover:underline" style={{ color: '#0071e3' }}>
@@ -236,14 +255,14 @@ export default function CommandesClient({
         {isAdmin && (
           <div className="flex flex-wrap items-center gap-2 pt-2" style={{ borderTop: '1px solid #f2f2f7' }}>
             <span className="text-xs font-medium" style={{ color: '#aeaeb2' }}>Sélection rapide :</span>
-            {(['en_attente','validee','commandee','colis_arrive'] as CommandeStatus[]).map(s => {
+            {(['en_attente','validee','commandee','colis_arrive','refusee','non_commandable','receptionnee'] as CommandeStatus[]).map(s => {
               const count = sorted.filter(c => c.statut === s).length;
               if (count === 0) return null;
               return (
                 <button key={s} onClick={() => selectByStatut(s)}
                   className="text-xs px-2.5 py-1 rounded-full border transition-all"
                   style={{ background: '#f5f5f7', color: '#3a3a3c', borderColor: '#e5e5ea' }}>
-                  {({'en_attente':'En attente','validee':'Validées','commandee':'Commandées','colis_arrive':'Colis arrivés'} as Record<string,string>)[s]} ({count})
+                  {({'en_attente':'En attente','validee':'Validées','commandee':'Commandées','colis_arrive':'Colis arrivés','refusee':'Refusées','non_commandable':'Non commandables','receptionnee':'Réceptionnées par le groupe'} as Record<string,string>)[s]} ({count})
                 </button>
               );
             })}
@@ -274,6 +293,10 @@ export default function CommandesClient({
           </div>
         )}
       </div>
+
+      {emailCommandes.length > 0 && (
+        <GroupedEmails commandes={emailCommandes} onClose={() => setEmailCommandes([])} />
+      )}
 
       {/* Tableau */}
       <div className="card overflow-hidden">

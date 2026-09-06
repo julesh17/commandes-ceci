@@ -42,7 +42,7 @@ export default function ExportPage() {
         commandee: 'Commandée',
         non_commandable: 'Non commandable',
         colis_arrive: 'Colis arrivé',
-        receptionnee: 'Réceptionnée',
+        receptionnee: 'Réceptionnée par le groupe',
       };
 
       const formatDate = (d: string | null) =>

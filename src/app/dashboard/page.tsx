@@ -122,7 +122,7 @@ export default async function DashboardPage() {
               { label: 'Total commandes', value: statsAdmin.total, color: 'text-slate-900' },
               { label: 'En attente', value: statsAdmin.en_attente, color: 'text-amber-600' },
               { label: 'Commandées', value: statsAdmin.commandee, color: 'text-indigo-600' },
-              { label: 'Réceptionnées', value: statsAdmin.receptionnee, color: 'text-green-600' },
+              { label: 'Réceptionnées par les groupes', value: statsAdmin.receptionnee, color: 'text-green-600' },
             ].map(stat => (
               <div key={stat.label} className="card p-5">
                 <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{stat.label}</p>

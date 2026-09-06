@@ -152,7 +152,7 @@ export default async function CommandeDetailPage({
                 { label: 'Validée le', date: cmd.date_validation },
                 { label: 'Commandée le', date: cmd.date_commande },
                 { label: 'Colis arrivé le', date: cmd.date_colis_arrive },
-                { label: 'Réceptionnée le', date: cmd.date_reception },
+                { label: 'Réceptionnée par le groupe le', date: cmd.date_reception },
               ].map(({ label, date }) => date && (
                 <div key={label} className="flex justify-between text-sm">
                   <span style={{ color: '#6e6e73' }}>{label}</span>

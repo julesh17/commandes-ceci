@@ -38,6 +38,7 @@ export interface Groupe {
   nom: string;
   user_id: string | null;
   created_at: string;
+  budget_ajustement?: number;
   promotions?: Promotion;
 }
 
@@ -81,7 +82,7 @@ export const STATUS_LABELS: Record<CommandeStatus, string> = {
   commandee: 'Commandée',
   non_commandable: 'Non commandable',
   colis_arrive: 'Colis arrivé',
-  receptionnee: 'Réceptionnée',
+  receptionnee: 'Réceptionnée par le groupe',
 };
 
 export const STATUS_COLORS: Record<CommandeStatus, string> = {

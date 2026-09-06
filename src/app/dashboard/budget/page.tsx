@@ -41,7 +41,7 @@ export default async function BudgetPage() {
 
   // Groupes de ces promotions
   const { data: groupes } = await supabase
-    .from('groupes').select('id, promotion_id').in('promotion_id', promoIds);
+    .from('groupes').select('*').in('promotion_id', promoIds);
 
   const groupeIds = groupes?.map(g => g.id) || [];
 
@@ -64,7 +64,10 @@ export default async function BudgetPage() {
     const commandesPromo = commandes?.filter(c => groupeIdsPromo.includes(c.groupe_id)) || [];
 
     const nbGroupes = groupesPromo.length;
-    const budgetTotal = promo.budget_par_groupe * nbGroupes;
+    const budgetTotal = groupesPromo.reduce((sum, g) => {
+      const ajustement = Number((g as { budget_ajustement?: number }).budget_ajustement || 0);
+      return sum + Number(promo.budget_par_groupe) + ajustement;
+    }, 0);
     const budgetConsomme = commandesPromo.reduce((sum, c) => {
       const prix = c.prix_reel ? Number(c.prix_reel) : Number(c.prix_estime);
       return sum + prix;
